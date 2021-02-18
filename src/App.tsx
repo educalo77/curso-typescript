@@ -1,42 +1,10 @@
-import React, { useContext, Fragment, useEffect } from "react";
+import React, { useContext, Fragment } from "react";
 import "./App.css";
 import { Store } from "./Store";
-import { IEpisode, IAction } from "./interfaces";
+import { Link } from "@reach/router";
 
-function App(): JSX.Element {
-  const { state, dispatch } = useContext(Store);
-  const URL =
-    "https://api.tvmaze.com/singlesearch/shows?q=rick-&-morty&embed=episodes";
-  const fetchDataAction = async () => {
-    const data = await fetch(URL);
-    const dataJSON = await data.json();
-    return dispatch({
-      type: "FETCH_DATA",
-      payload: dataJSON._embedded.episodes,
-    });
-  };
-  const toggleFavAction = (episode: IEpisode): IAction => {
-    const episodeInFav = state.favourites.includes(episode);
-    let dispatchObj = {
-      type: "ADD_FAV",
-      payload: episode,
-    };
-    if (episodeInFav) {
-      const favWithoutEpisode = state.favourites.filter(
-        (fav: IEpisode) => fav.id !== episode.id
-      );
-      dispatchObj = {
-        type: "REMOVE_FAV",
-        payload: favWithoutEpisode,
-      };
-    }
-    return dispatch(dispatchObj);
-  };
-  useEffect(() => {
-    state.episodes.length === 0 && fetchDataAction();
-  });
-
-  console.log(state);
+function App(props: any): JSX.Element {
+  const { state } = useContext(Store);
 
   return (
     <Fragment>
@@ -46,34 +14,13 @@ function App(): JSX.Element {
           <p>Pick your favourite epoisode!!!</p>
         </div>
         <div>
-          <p>Favourites: {`${state.favourites.length}`}</p>
+          <Link to="/">Home</Link>
+          <Link to="/faves">
+            <p>Favourites: {`${state.favourites.length}`}</p>
+          </Link>
         </div>
       </header>
-      <section className="episode-layout">
-        {state.episodes.map((episode: IEpisode) => {
-          return (
-            <section key={episode.id} className="episode-box">
-              <img
-                src={episode.image.medium}
-                alt={`Rick & Morty ${episode.name}`}
-              />
-              <div>{episode.name}</div>
-              <section>
-                <div>
-                  Season: {episode.season} Number: {episode.number}
-                </div>
-                <button type="button" onClick={() => toggleFavAction(episode)}>
-                  {state.favourites.find(
-                    (fav: IEpisode) => fav.id === episode.id
-                  )
-                    ? "UnFav"
-                    : "Fav"}
-                </button>
-              </section>
-            </section>
-          );
-        })}
-      </section>
+      {props.children}
     </Fragment>
   );
 }
